@@ -1,0 +1,101 @@
+-- INNER JOIN
+-- 1
+SELECT p.name AS product, 
+		c.name AS category, 
+		s.name AS supplier
+FROM Product p
+JOIN Category c ON p.id_category = c.id
+JOIN Delivery d ON p.id = d.id_product
+JOIN Supplier s ON d.id_supplier = s.id
+WHERE s.name IN ('Global Electronics Supply', 'Fashion Wholesalers');
+
+
+-- 2
+SELECT p.name AS product,
+		pr.name AS producer, 
+		s.name AS supplier, 
+		c.name AS category
+FROM Product p
+JOIN Producer pr ON p.id_producer = pr.id
+JOIN Delivery d ON p.id = d.id_product
+JOIN Supplier s ON d.id_supplier = s.id
+JOIN Category c ON p.id_category = c.id
+WHERE pr.name NOT LIKE '%A%' AND pr.name NOT LIKE '%K%'
+	AND pr.name NOT LIKE '%M%' AND c.name != 'Electronics'
+
+
+-- 3
+SELECT p.name AS product,
+		cat.name AS category,
+		s.name AS supplier,
+		cnt.name AS country
+FROM Product p
+JOIN Category cat ON p.id_category = cat.id
+JOIN Producer pr ON p.id_producer = pr.id
+JOIN Delivery d ON p.id = d.id_product
+JOIN Supplier s ON d.id_supplier = s.id
+JOIN Address a ON pr.id_address = a.id
+JOIN City ci ON a.id_city = ci.id
+JOIN Region r ON ci.id_region = r.id
+JOIN Country cnt ON r.id_country = cnt.id
+WHERE cnt.name NOT IN ('USA', 'UK', 'Germany')
+	AND d.price < 50 AND d.date_of_delivery >= '2025-02-10'
+	AND d.date_of_delivery <= GETDATE();
+
+
+-- 4
+SELECT p.name AS product,
+		c.name AS category,
+		SUM(s.quantity) AS [total sold],
+		sup.name AS supplier,
+		pr.name AS producer
+FROM Product p
+JOIN Producer pr ON p.id_producer = pr.id
+JOIN Delivery d ON p.id = d.id_product
+JOIN Supplier sup ON d.id_supplier = sup.id
+JOIN Category c ON p.id_category = c.id
+JOIN Sale s ON p.id = s.id_product
+WHERE c.name = 'Food & Drinks'
+GROUP BY p.id, p.name, c.name, sup.name, pr.name
+HAVING SUM(s.quantity) > 50;
+
+
+-- 5
+SELECT p.name AS product,
+		s.name AS supplier,
+		c.name AS category,
+		d.date_of_delivery,
+		(d.price * d.quantity) AS [total delivery cost]
+FROM Product p
+JOIN Delivery d ON p.id = d.id_product
+JOIN Supplier s ON d.id_supplier = s.id
+JOIN Category c ON p.id_category = c.id
+WHERE s.name IN ('Global Electronics Supply', 'Fashion Wholesalers',
+				'Home Essentials Co.')
+ORDER BY p.name ASC;
+
+
+--------------------------------------------------------------------------
+-- OUTER JOIN
+-- 1
+SELECT p.name AS product,
+		pr.name AS producer
+FROM Producer pr
+LEFT JOIN Product p ON pr.id = p.id_producer;
+
+
+-- 2
+SELECT c.id, c.name AS category
+FROM Category c
+LEFT JOIN Product p ON c.id = p.id_category
+WHERE p.id IS NULL;
+
+
+-- 3
+SELECT p.name AS product,
+		d.date_of_delivery,
+		s.name AS supplier
+FROM Supplier s
+LEFT JOIN Delivery d ON s.id = d.id_supplier
+LEFT JOIN Product p ON d.id_product = p.id
+ORDER BY s.name, d.date_of_delivery;
